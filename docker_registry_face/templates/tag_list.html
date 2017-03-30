@@ -28,7 +28,7 @@
                     <h4 class="modal-title">警告</h4>
                 </div>
             <div class="modal-body">
-                点击确认将删除您选中的镜像以及 <strong>所有标签</strong>！是否继续？
+                点击确认将删除您选中的镜像标签以及 <strong>所有标签下的文件层</strong>！是否继续？
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
@@ -53,12 +53,28 @@
         </div>
     </div>
 
+    <div class="modal fade" id="mdl_show_history" tabindex="-1" role="dialog" aria-labelledby="infoModal">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h4 class="modal-title">标签历史</h4>
+                <small><span id="sp_tag_title"></span></small>
+                </div>
+                <div class="modal-body" style="margin-bottom: 15px">
+                    <div class="panel-group" id="div_tag_history_body" role="tablist" aria-multiselectable="true">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div class="modal fade" id="mdl_show_detail" tabindex="-1" role="dialog" aria-labelledby="infoModal">
         <div class="modal-dialog modal-md" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                <h4 class="modal-title">标签详情</h4>
+                <h4 class="modal-title">标签清单</h4>
                 <small><span id="sp_tag_url"></span></small>
                 <strong><span id="sp_tag_size"></span></strong>
                 </div>
@@ -99,16 +115,16 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-9" style="margin-bottom: 13px">
-                        <button type="button" class="btn btn-default" onclick="selectAll(1)">选择全部</button>
-                        <button type="button" class="btn btn-default" onclick="selectAll(0)">取消选择</button>
-                        <button type="button" class="btn btn-danger" id="btn_delete_images" data-toggle="modal" data-target="#mdl_ack_del">删除镜像</button>
-                        <button type="button" class="btn btn-primary" id="btn_image_detail" data-toggle="modal" data-target="#mdl_show_detail">标签详情</button>
+                        <button type="button" class="btn btn-default" onclick="selectAll(1)">全选</button>
+                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#mdl_ack_del">删除</button>
+                        <button type="button" class="btn btn-primary" onclick="get_tag_manifest()">清单</button>
+                        <button type="button" class="btn btn-primary" onclick="get_tag_history()">历史</button>
                     </div>
 
                     <div class="col-md-3" style="margin-bottom: 13px">
                         <div class="input-icon-group">
                             <div class="input-group">
-                                <input type="text" class="form-control" id="ipt_search_images" placeholder="搜索镜像 ..." autofocus/>
+                                <input type="text" class="form-control" id="ipt_search_images" placeholder="搜索标签 ..." autofocus/>
                                 <span class="input-group-addon">
                                     <i class="glyphicon glyphicon-search"> </i>
                                 </span> 
@@ -138,42 +154,67 @@
     <script src="static/js/bootstrap.min.js"></script>
     <script src="static/js/bootstrap-treeview.min.js"></script>
     <script>
-        var source_data = {{ tree_view | safe }}
-        var tree_view = []
+        var image = "{{ image }}"
+        var source_data = {}
 
-        $.each(source_data.tag_list, function(index, value, array) {
-            var tag_size = 0
-            $.each(value.layer_detail, function(i, v, a) {
-                tag_size += v.size
-            })
-            tree_view.push({
-                "text":value.tag,
-                "tags":[value.layer_count + " Layers",(tag_size / 1024 / 1024).toFixed(2) + " MB"]
-            })
-        });
-
-        $('#image_title').text(" > " + source_data.image_name)
-
-        if (tree_view.length) {
-            var test = $('#tag_list').treeview({
-                data: tree_view,
-                multiSelect: true,
-                levels: 1,
-                showTags: true
+        fetch('/api/v1/tag?image=' + image, {
+            method: 'get',
+            headers: {"Content-type": "application/json charset=UTF-8"}
+        })
+        .then(
+            function(response) {
+                response.json().then(function(data) {
+                if (response.status == 200) {
+                    source_data = data
+                    $.each(source_data.tag_list, function(index, value, array) {
+                        var tree_view = []
+                        var tag_size = 0
+                        $.each(value.layer_detail, function(i, v, a) {
+                            tag_size += v.size
+                        })
+                        tree_view.push({
+                            "text":value.tag,
+                            "tags":[value.layer_count + " Layers",(tag_size / 1024 / 1024).toFixed(2) + " MB"]
+                        })
+                        if (tree_view.length) {
+                            $('#tag_list').treeview({
+                                data: tree_view,
+                                multiSelect: true,
+                                levels: 1,
+                                showTags: true
+                            });
+                        } else {
+                            $('#tag_list').treeview({data: [{"text":"镜像木有标签 ..."}]})
+                            $('#tag_list').treeview('disableAll', { silent: true });
+                            $('#btn_collapse_all').attr('disabled',true)
+                            $('#btn_delete_images').attr('disabled',true)
+                            $('#ipt_search_images').attr('disabled',true)
+                        }
+                    });
+                }
             });
-        } else {
-            $('#tag_list').treeview({data: [{"text":"仓库是空的 ..."}]})
-            $('#tag_list').treeview('disableAll', { silent: true });
-            $('#btn_collapse_all').attr('disabled',true)
-            $('#btn_delete_images').attr('disabled',true)
-            $('#ipt_search_images').attr('disabled',true)
-        }
+        })
+        .catch(function(err) {
+            alert("标签列表获取异常！" + err);
+        });
+        
+        $('#image_title').text(" > " + image)
 
-        $('#mdl_show_detail').on('show.bs.modal', function (e) {
-            var sel_tags = $('#tag_list').treeview('getSelected', { silent: true });
-            if (sel_tags.length) {
+        $('#mdl_show_detail').on('hide.bs.modal', function (e) {
+            $('#ul_tag_detail_body').empty()
+            $('#sp_tag_url').empty()
+            $('#sp_tag_size').empty()
+        })
+
+        $('#mdl_show_history').on('hide.bs.modal', function (e) {
+            $('#div_tag_history_body').empty()
+        })
+
+        function get_tag_manifest() {
+            var sel_tag = $('#tag_list').treeview('getSelected', { silent: true });
+            if (sel_tag.length == 1) {
                 var tag_size = 0
-                var tag_detail = source_data.tag_list[sel_tags[0].text]
+                var tag_detail = source_data.tag_list[sel_tag[0].text]
 
                 $.each(tag_detail.layer_detail, function(index, value, array) {
                     tag_size += value.size
@@ -188,14 +229,47 @@
                 $('#sp_tag_size').text((tag_size / 1024 / 1024).toFixed(2) + " MB")
             } else {
                 $('#ul_tag_detail_body').append("<li class=\"list-group-item\">没有选择标签或选择了 <strong>多个标签</strong></li>")
-           }
-        })
+            }
+            $('#mdl_show_detail').modal('show')
+        }
 
-        $('#mdl_show_detail').on('hide.bs.modal', function (e) {
-            $('#ul_tag_detail_body').empty()
-            $('#sp_tag_url').empty()
-            $('#sp_tag_size').empty()
-        })
+        function get_tag_history() {
+            var sel_tag = $('#tag_list').treeview('getSelected', { silent: true });
+            if (sel_tag.length == 1) {
+                    fetch('/api/v1/tag/history?image=' + image + '&tag=' + sel_tag[0].text, {
+                        method: 'get',
+                        headers: {"Content-type": "application/json charset=UTF-8"}
+                    })
+                    .then(
+                        function(response) {
+                            response.json().then(function(data) {
+                            if (response.status == 200) {
+                                $('#sp_tag_title').text(data.image + ":" + data.tag)
+                                console.log(data)
+                                var history = ""
+                                $.each(data.history, function(index, value, array) {
+                                    if (value['Cmd']){
+                                        history = "<div class=\"panel panel-default\"><div class=\"panel-heading\" role=\"tab\" id=\"head" + value.id + "\">" 
+                                        + "<a data-toggle=\"collapse\" data-parent=\"#div_tag_history_body\" href=\"#" + value.id + "\" aria-expanded=\"true\" aria-controls=\""
+                                        + value.id + "\">" + value.created.split('T')[0] + " " + value.created.split('T')[1].split('.')[0] + "</a></div>"
+                                        + "<div id=\"" + value.id + "\" class=\"panel-collapse collapse\" role=\"tabpanel\" aria-labelledby=\"head" + value.id + "\">"
+                                        + "<div class=\"panel-body\" style=\"word-wrap:break-word\"><small>"
+                                        + JSON.stringify(value['Cmd']['container_config'])
+                                        + "</small></div></div></div>"
+                                        $('#div_tag_history_body').append(history)
+                                    }
+                                })
+                            }
+                        });
+                    })
+                    .catch(function(err) {
+                        alert("标签列表获取异常！" + err);
+                    });
+            } else {
+                $('#ul_tag_detail_body').append("<li class=\"list-group-item\">没有选择标签或选择了 <strong>多个标签</strong></li>")
+            }
+            $('#mdl_show_history').modal('show')
+        }
 
         function selectAll(select) {
             var node_ids = []

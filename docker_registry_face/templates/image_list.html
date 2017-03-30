@@ -49,7 +49,7 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-9" style="margin-bottom: 13px">
-                        <button type="button" class="btn btn-primary" id="btn_collapse_all" onclick="collapseAll()">收起所有</button>
+                        <button type="button" class="btn btn-primary" id="btn_collapse_all" onclick="collapseAll()">折叠</button>
                     </div>
 
                     <div class="col-md-3" style="margin-bottom: 13px">
@@ -85,21 +85,57 @@
     <script src="static/js/bootstrap.min.js"></script>
     <script src="static/js/bootstrap-treeview.min.js"></script>
     <script>
-        var tree_view = {{ tree_view | safe }}
-        if (tree_view.length) {
-            $('#image_list').treeview({
-                data: tree_view,
-                levels: 1,
-                showTags: true,
-                enableLinks: true
+        fetch('/api/v1/image', {
+            method: 'get',
+            headers: {"Content-type": "application/json charset=UTF-8"}
+        })
+        .then(
+            function(response) {
+                response.json().then(function(data) {
+                if (response.status == 200) {
+                    console.log(data)
+                    var tree_view = []
+                    $.each(data, function(index, fvalue, array) {
+                        var img = {}
+                        if (fvalue['sub']) {
+                            img['text'] = fvalue.name
+                            img['tags'] = [fvalue.sub.length]
+                            img['nodes'] = []
+
+                            $.each(fvalue.sub, function(index, svalue, array) {
+                                img['nodes'].push({
+                                    "text":svalue.name,
+                                    "href":"tags?image=" + fvalue.name + "/" + svalue.name,
+                                    "selectable": false
+                                })
+                            })
+                        } else {
+                            img['text'] = fvalue.name
+                            img["href"] = "tags?image=" + fvalue.name
+                        }
+                        img["selectable"] = false
+                        tree_view.push(img)
+                    })
+                    if (tree_view.length) {
+                        $('#image_list').treeview({
+                            data: tree_view,
+                            levels: 1,
+                            showTags: true,
+                            enableLinks: true
+                        });
+                    } else {
+                        $('#image_list').treeview({data: [{"text":"仓库是空的 ..."}]})
+                        $('#image_list').treeview('disableAll', { silent: true });
+                        $('#btn_collapse_all').attr('disabled',true)
+                        $('#btn_delete_images').attr('disabled',true)
+                        $('#ipt_search_images').attr('disabled',true)
+                    }
+                }
             });
-        } else {
-            $('#image_list').treeview({data: [{"text":"仓库是空的 ..."}]})
-            $('#image_list').treeview('disableAll', { silent: true });
-            $('#btn_collapse_all').attr('disabled',true)
-            $('#btn_delete_images').attr('disabled',true)
-            $('#ipt_search_images').attr('disabled',true)
-        }
+        })
+        .catch(function(err) {
+            alert("标签列表获取异常！" + err);
+        });
 
         function collapseAll() {
             $('#image_list').treeview('collapseAll', { silent: true });
