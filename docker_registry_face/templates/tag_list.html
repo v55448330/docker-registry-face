@@ -115,9 +115,9 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-9" style="margin-bottom: 13px">
-                        <button type="button" class="btn btn-default" onclick="selectAll(1)">全选</button>
+                        <button type="button" class="btn btn-default" onclick="selectAll()">全选</button>
                         <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#mdl_ack_del">删除</button>
-                        <button type="button" class="btn btn-primary" onclick="get_tag_manifest()">清单</button>
+                        <button type="button" class="btn btn-primary" onclick="get_tag_manifest()">详情</button>
                         <button type="button" class="btn btn-primary" onclick="get_tag_history()">历史</button>
                     </div>
 
@@ -266,18 +266,19 @@
                         alert("标签列表获取异常！" + err);
                     });
             } else {
-                $('#ul_tag_detail_body').append("<li class=\"list-group-item\">没有选择标签或选择了 <strong>多个标签</strong></li>")
+                $('#div_tag_history_body').append("<li class=\"list-group-item\">没有选择标签或选择了 <strong>多个标签</strong></li>")
             }
             $('#mdl_show_history').modal('show')
         }
 
-        function selectAll(select) {
+        function selectAll() {
             var node_ids = []
             var all_tags = $('#tag_list').treeview('getSiblings', { silent: true });
+            var sel_tags = $('#tag_list').treeview('getSelected', { silent: true });
             $.each(all_tags, function(index, value, array) {
                 node_ids.push(value.nodeId)
             })
-            if (select){
+            if (!sel_tags.length){
                 $('#tag_list').treeview('selectNode', [ node_ids, { silent: true } ]);
             } else {
                 $('#tag_list').treeview('unselectNode', [ node_ids, { silent: true } ]);
