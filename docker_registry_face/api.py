@@ -1,26 +1,19 @@
 from docker_registry_face import app
 from flask import render_template, request
 from requests.auth import HTTPBasicAuth
+from config import reload_config
 import requests
 import json
-
-if app.config.get('IS_ENV'):
-    registry_url = app.config.get('REGISTRY_URL','')
-    registry_user = app.config.get('REGISTRY_USER','')
-    registry_password = app.config.get('REGISTRY_PASSWORD','')
-else:
-    registry_local_conf = {}
-    with open('registry_local_conf.json', 'r') as f:
-        registry_local_conf = json.loads(f.read())
-
-    registry_url = registry_local_conf.get('REGISTRY_URL','')
-    registry_user = registry_local_conf.get('REGISTRY_USER','')
-    registry_password = registry_local_conf.get('REGISTRY_PASSWORD','')
 
 @app.route('/api/v1/image', methods=['GET'])
 def get_images():
     images = []
     try:
+        config = reload_config() 
+        registry_url = config.get('registry_url')
+        registry_user = config.get('registry_user')
+        registry_password = config.get('registry_password')
+
         if registry_url \
             and registry_user \
             and registry_password:
@@ -73,7 +66,11 @@ def get_image_tags():
     }
     try:
         img = {}
-        print image
+        config = reload_config() 
+        registry_url = config.get('registry_url')
+        registry_user = config.get('registry_user')
+        registry_password = config.get('registry_password')
+
         if registry_url \
             and registry_user \
             and registry_password:
@@ -108,6 +105,11 @@ def get_tag_history():
         "history":[]
     }
     try:
+        config = reload_config() 
+        registry_url = config.get('registry_url')
+        registry_user = config.get('registry_user')
+        registry_password = config.get('registry_password')
+
         img = {}
         if registry_url \
             and registry_user \

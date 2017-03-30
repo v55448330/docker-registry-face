@@ -49,6 +49,13 @@ def settings_save():
                         "REGISTRY_USER": req['registry_user'],
                         "REGISTRY_PASSWORD": req['registry_password'],
                     }
+
+                    app.config.update(
+                        REGISTRY_URL=req['registry_url'],
+                        REGISTRY_USER=req['registry_user'],
+                        REGISTRY_PASSWORD=req['registry_password']
+                    )
+                    print app.config.get('REGISTRY_URL')
                     
                     with open('registry_local_conf.json', 'w') as f:
                         f.write(json.dumps(registry_conf))
