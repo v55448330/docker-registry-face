@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
+    <meta name="description" content="Docker Registry Face">
+    <meta name="author" content="XiaoBao">
+
+    <title>Docker Registry Face</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="static/css/bootstrap-theme.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="static/css/theme.css" rel="stylesheet">
+</head>
+
+<body>
+    <!-- Info modal -->
+    <div class="modal fade" id="mdl_alert" tabindex="-1" role="dialog" aria-labelledby="infoModal">
+        <div class="modal-dialog modal-md" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                <h4 class="modal-title" id="mdl_info_title">Small modal</h4>
+                </div>
+                <div class="modal-body" style="margin-bottom: 15px">
+                    <span id="mdl_info_body"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Fixed navbar -->
+    <nav class="navbar navbar-inverse navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+                <a class="navbar-brand" href="#">Docker Registry Face</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li><a href="/image_list">镜像列表</a></li>
+                    <li class="active"><a href="#">系统配置</a></li>
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </nav>
+
+    <div class="container" role="main">
+        <div class="row panel panel-default">
+            <div class="panel-heading">镜像仓库配置</div>
+            <div class="panel-body">
+                <div class="col-md-5">
+                    <form>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon">仓库地址</span>
+                                <input type="text" class="form-control" placeholder="请填写镜像仓库访问地址" id="registry_url">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon">仓库用户</span>
+                                <input type="text" class="form-control" placeholder="请填写镜像仓库的管理员用户" id="registry_user">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="input-group">
+                                <span class="input-group-addon">仓库密码</span>
+                                <input type="text" class="form-control" placeholder="请填写镜像仓库的管理员密码" id="registry_password">
+                            </div>
+                        </div>
+                        <button type="button" id="registry_save" onclick="save_registry()" class="btn btn-primary">保存</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- /container -->
+    <footer class="footer navbar-fixed-bottom navbar-inverse">
+        <div class="container">
+            <p class="navbar-text">XiaoBao @2017.3</p>
+        </div>
+    </footer>
+    <!-- Bootstrap core JavaScript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="static/js/jquery-3.2.0.min.js"></script>
+    <script>
+        window.jQuery || document.write('<script src="static/js/jquery-3.2.0.min.js"><\/script>')
+    </script>
+    <script src="static/js/bootstrap.min.js"></script>
+    <script>
+        // init settings
+        $('#registry_url').val('{{ content.registry_url }}')
+        $('#registry_user').val('{{ content.registry_user }}')
+        $('#registry_password').val('{{ content.registry_password }}')
+
+        {% if content.is_env == 1 %}
+        $('#registry_url').attr("disabled",true)
+        $('#registry_user').attr("disabled",true)
+        $('#registry_password').attr("disabled",true)
+        $('#registry_save').attr("disabled",true)
+        {% endif %}
+
+        function save_registry() {
+            if ($('#registry_url').val() && $('#registry_user').val() && $('#registry_password')) {
+                var pbody = {
+                    "registry_url": $('#registry_url').val(),
+                    "registry_user": $('#registry_user').val(),
+                    "registry_password": $('#registry_password').val()
+                }
+                fetch('/settings', {
+                        method: 'post',
+                        body: JSON.stringify(pbody),
+                        headers: {
+                            "Content-type": "application/json charset=UTF-8"
+                        }
+                    })
+                    .then(
+                        function(response) {
+                            response.json().then(function(data) {
+                                if (response.status >= 400 && response.status <= 500) {
+                                    console.log(response)
+                                    $('#mdl_info_title').text("提示");
+                                    $('#mdl_info_body').text("保存失败！" + response.status + ": " + data.result);
+                                    $("#mdl_alert").modal('show'); 
+                                    return;
+                                }
+                                console.log(data);
+                                $('#mdl_info_title').text("提示");
+                                $('#mdl_info_body').text("保存成功！");
+                                $('#mdl_alert').on('hide.bs.modal', function () {
+                                    top.location = '/settings'
+                                })
+                                $("#mdl_alert").modal('show'); 
+                            });
+                        }
+                    )
+                    .catch(function(err) {
+                        $('#mdl_info_title').text("提示");
+                        $('#mdl_info_body').text("请求异常！" + err);
+                        $("#mdl_alert").modal('show'); 
+                    });
+            } else {
+                $('#mdl_info_title').text("提示");
+                $('#mdl_info_body').text("请正确填写配置项！");
+                $("#mdl_alert").modal('show'); 
+            }
+        }
+    </script>
+</body>
+
+</html>
