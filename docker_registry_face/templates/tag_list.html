@@ -97,15 +97,15 @@
        <div class="row panel panel-default">
             <div class="panel-heading"><a href="/image_list">镜像列表</a> <span id="image_title"></span></div>
             <div class="panel-body">
-                <div class="row" style="margin-bottom: 15px">
-                    <div class="col-md-9">
-                        <button type="button" class="btn btn-default" onclick="selectAll()">选择全部</button>
-                        <button type="button" class="btn btn-default" id="btn_unselect" data-toggle="modal" data-target="#mdl_image_detail">取消选择</button>
+                <div class="row">
+                    <div class="col-md-9" style="margin-bottom: 13px">
+                        <button type="button" class="btn btn-default" onclick="selectAll(1)">选择全部</button>
+                        <button type="button" class="btn btn-default" onclick="selectAll(0)">取消选择</button>
                         <button type="button" class="btn btn-danger" id="btn_delete_images" data-toggle="modal" data-target="#mdl_ack_del">删除镜像</button>
                         <button type="button" class="btn btn-primary" id="btn_image_detail" data-toggle="modal" data-target="#mdl_show_detail">标签详情</button>
                     </div>
 
-                    <div class="col-md-3">
+                    <div class="col-md-3" style="margin-bottom: 13px">
                         <div class="input-icon-group">
                             <div class="input-group">
                                 <input type="text" class="form-control" id="ipt_search_images" placeholder="搜索镜像 ..." autofocus/>
@@ -177,7 +177,7 @@
 
                 $.each(tag_detail.layer_detail, function(index, value, array) {
                     tag_size += value.size
-                    $('#ul_tag_detail_body').append("<li class=\"list-group-item\"> \
+                    $('#ul_tag_detail_body').append("<li class=\"list-group-item\" style=\"word-wrap:break-word\"> \
                         <span class=\"badge\">" + (value.size / 1024 / 1024).toFixed(2) + " MB</span> \
                         <small><strong>mediaType: </strong>" 
                         + value.mediaType + "<br/><strong>digest: </strong>"
@@ -197,13 +197,17 @@
             $('#sp_tag_size').empty()
         })
 
-        function selectAll() {
+        function selectAll(select) {
             var node_ids = []
             var all_tags = $('#tag_list').treeview('getSiblings', { silent: true });
             $.each(all_tags, function(index, value, array) {
                 node_ids.push(value.nodeId)
             })
-            $('#tag_list').treeview('selectNode', [ node_ids, { silent: true } ]);
+            if (select){
+                $('#tag_list').treeview('selectNode', [ node_ids, { silent: true } ]);
+            } else {
+                $('#tag_list').treeview('unselectNode', [ node_ids, { silent: true } ]);
+            }
         }
 
         var search = function(e) {
