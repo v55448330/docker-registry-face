@@ -21,34 +21,14 @@
 
 <body>
     <!-- Modal -->
-    <div class="modal fade" id="mdl_ack_del" tabindex="-1" role="dialog" aria-labelledby="ackDelModal">
+    <div class="modal fade" id="mdl_info" tabindex="-1" role="dialog" aria-labelledby="infoModal">
         <div class="modal-dialog" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h4 class="modal-title">警告</h4>
+                    <h4 class="modal-title"><span id="sp_info_title"></span></h4>
                 </div>
-            <div class="modal-body">
-                点击确认将删除您选中的镜像标签以及 <strong>所有标签下的文件层</strong>！是否继续？
+            <div class="modal-body" id="sp_info_body" style="margin-bottom: 10px">
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
-                <button type="button" id="btn_del_ok" class="btn btn-danger" onclick="delImages()">确认</button>
-            </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Info modal -->
-    <div class="modal fade" id="mdl_alert" tabindex="-1" role="dialog" aria-labelledby="infoModal">
-        <div class="modal-dialog modal-md" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                <h4 class="modal-title" id="mdl_info_title">Small modal</h4>
-                </div>
-                <div class="modal-body" style="margin-bottom: 15px">
-                    <span id="mdl_info_body"></span>
-                </div>
             </div>
         </div>
     </div>
@@ -115,8 +95,8 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-9" style="margin-bottom: 13px">
-                        <button type="button" class="btn btn-default" onclick="selectAll()">全选</button>
-                        <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#mdl_ack_del">删除</button>
+                        <button type="button" class="btn btn-default" onclick="select_all()">全选</button>
+                        <button type="button" class="btn btn-danger" onclick="del_images()">删除</button>
                         <button type="button" class="btn btn-primary" onclick="get_tag_manifest()">详情</button>
                         <button type="button" class="btn btn-primary" onclick="get_tag_history()">历史</button>
                     </div>
@@ -165,9 +145,10 @@
             function(response) {
                 response.json().then(function(data) {
                 if (response.status == 200) {
-                    source_data = data
-                    $.each(source_data.tag_list, function(index, value, array) {
-                        var tree_view = []
+                    var tree_view = []
+                    console.log(data.tag_list)
+                    $.each(data.tag_list, function(index, value, array) {
+                        source_data[value.tag] = value
                         var tag_size = 0
                         $.each(value.layer_detail, function(i, v, a) {
                             tag_size += v.size
@@ -176,21 +157,21 @@
                             "text":value.tag,
                             "tags":[value.layer_count + " Layers",(tag_size / 1024 / 1024).toFixed(2) + " MB"]
                         })
-                        if (tree_view.length) {
-                            $('#tag_list').treeview({
-                                data: tree_view,
-                                multiSelect: true,
-                                levels: 1,
-                                showTags: true
-                            });
-                        } else {
-                            $('#tag_list').treeview({data: [{"text":"镜像木有标签 ..."}]})
-                            $('#tag_list').treeview('disableAll', { silent: true });
-                            $('#btn_collapse_all').attr('disabled',true)
-                            $('#btn_delete_images').attr('disabled',true)
-                            $('#ipt_search_images').attr('disabled',true)
-                        }
                     });
+                    if (tree_view.length) {
+                        $('#tag_list').treeview({
+                            data: tree_view,
+                            multiSelect: true,
+                            levels: 1,
+                            showTags: true
+                        });
+                    } else {
+                        $('#tag_list').treeview({data: [{"text":"镜像木有标签 ..."}]})
+                        $('#tag_list').treeview('disableAll', { silent: true });
+                        $('#btn_collapse_all').attr('disabled',true)
+                        $('#btn_delete_images').attr('disabled',true)
+                        $('#ipt_search_images').attr('disabled',true)
+                    }
                 }
             });
         })
@@ -210,11 +191,16 @@
             $('#div_tag_history_body').empty()
         })
 
+        $('#mdl_info').on('hide.bs.modal', function (e) {
+            $('#sp_info_title').empty()
+            $('#sp_info_body').empty()
+        })
+
         function get_tag_manifest() {
             var sel_tag = $('#tag_list').treeview('getSelected', { silent: true });
             if (sel_tag.length == 1) {
                 var tag_size = 0
-                var tag_detail = source_data.tag_list[sel_tag[0].text]
+                var tag_detail = source_data[sel_tag[0].text]
 
                 $.each(tag_detail.layer_detail, function(index, value, array) {
                     tag_size += value.size
@@ -227,10 +213,12 @@
 
                 $('#sp_tag_url').text(tag_detail.url)
                 $('#sp_tag_size').text((tag_size / 1024 / 1024).toFixed(2) + " MB")
+                $('#mdl_show_detail').modal('show')
             } else {
-                $('#ul_tag_detail_body').append("<li class=\"list-group-item\">没有选择标签或选择了 <strong>多个标签</strong></li>")
+                $('#sp_info_title').text('错误')
+                $('#sp_info_body').append('<span>没有选择标签或者选择了 <strong>多个标签</strong></span>')
+                $('#mdl_info').modal('show')
             }
-            $('#mdl_show_detail').modal('show')
         }
 
         function get_tag_history() {
@@ -265,13 +253,15 @@
                     .catch(function(err) {
                         alert("标签列表获取异常！" + err);
                     });
+                $('#mdl_show_history').modal('show')
             } else {
-                $('#div_tag_history_body').append("<li class=\"list-group-item\">没有选择标签或选择了 <strong>多个标签</strong></li>")
+                $('#sp_info_title').text('错误')
+                $('#sp_info_body').append('<span>没有选择标签或者选择了 <strong>多个标签</strong></span>')
+                $('#mdl_info').modal('show')
             }
-            $('#mdl_show_history').modal('show')
         }
 
-        function selectAll() {
+        function select_all() {
             var node_ids = []
             var all_tags = $('#tag_list').treeview('getSiblings', { silent: true });
             var sel_tags = $('#tag_list').treeview('getSelected', { silent: true });
@@ -293,67 +283,52 @@
             }
             var pattern = $('#ipt_search_images').val();
             var results = $('#tag_list').treeview('search', [ pattern, options ]);
-            if (!$('#ipt_search_images').val()) {
-                collapseAll()
-            }
         }
         $('#ipt_search_images').on('keyup', search);
 
-        function delImages() {
+        function del_images() {
             var sel_tags = $('#tag_list').treeview('getSelected', { silent: true });
-            var all_tags = $('#tag_list').treeview('getSiblings', { silent: true });
-            var images = []
-            var tags = {}
+            if (sel_tags.length) {
+                $('#sp_info_title').text('删除镜像')
+                $('#mdl_info').modal('show')
+                $.each(sel_tags, function(index, value, array) {
+                    //$('#sp_info_body').empty()
 
-            $.each(all_tags, function(index, value, array) {
-                if (value['nodes']) { 
-                    tags[value.nodeId] = value.text
-                }
-            });
-
-            $.each(sel_tags, function(index, value, array) {
-                if (!value['nodes']) {
-                    if (value['parentId']) {
-                        images.push(tags[value.parentId] + "/" + value.text)
-                    } else {
-                        images.push(value.text)
+                    $('#sp_info_body').append('<small><span>正在删除镜像 <strong>'
+                        + image + ':' + value.text + '</strong> 。第 ' + (index + 1) + ' 个，共 '
+                        + sel_tags.length + ' 个。</span><span id=\'sp_tmp_' + index + '\'></span></small><br />'
+                    )
+                    var body = {
+                        "image":image,
+                        "tag":value.text
                     }
-                }
-            })
-
-            if (images.length) {
-                fetch('/tag_list', {
-                    method: 'delete',
-                    body: JSON.stringify(images),
-                    headers: {
-                        "Content-type": "application/json charset=UTF-8"
-                    }
-                })
-                .then(
-                    function(response) {
-                        response.json().then(function(data) {
-                        if (response.status >= 400 && response.status <= 500) {
+                    fetch('/api/v1/tag', {
+                        body: JSON.stringify(body),
+                        method: 'delete',
+                        headers: {"Content-type": "application/json charset=UTF-8"}
+                    })
+                    .then(
+                        function(response) {
+                            response.json().then(function(data) {
                             console.log(response)
-                            alert('删除失败！' + response.status + ": " + data.result);
-                            return;
-                        }
-                        console.log(data);
-                        alert('删除成功！');
-                        //top.location = '/image_list'
-                    });
+                            if (response.status == 200) {
+                                $('#sp_tmp_' + index).text("成功")
+                            }
+                            else {
+                                $('#sp_tmp_' + index).text("失败")
+                            }
+                        });
+                    })
                 })
-                .catch(function(err) {
-                    alert("请求异常！" + err);
-                });
-
+                $('#sp_info_body').append('<br /><span><strong>删除完成！</strong></span>')
             } else {
-                $("#mdl_ack_del").modal('hide'); 
-                $('#mdl_info_title').text("警告：");
-                $('#mdl_info_body').text("似乎您木有选择镜像？");
-                $("#mdl_alert").modal('show'); 
+                $('#sp_info_title').text('错误')
+                $('#sp_info_body').append('<span>您似乎木有选择 <strong>要删除</strong> 的标签</span>')
+                $('#mdl_info').modal('show')
             }
         }
-    </script>
+
+     </script>
 </body>
 
 </html>
