@@ -8,3 +8,4 @@ import docker_registry_face.image_list
 import docker_registry_face.tag_list
 import docker_registry_face.settings
 import docker_registry_face.api
+import docker_registry_face.index

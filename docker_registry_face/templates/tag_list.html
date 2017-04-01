@@ -96,16 +96,16 @@
             <div class="panel-body">
                 <div class="row">
                     <div class="col-md-9" style="margin-bottom: 13px">
-                        <button type="button" class="btn btn-default" onclick="select_all()">全选</button>
-                        <button type="button" class="btn btn-danger" onclick="del_images()">删除</button>
-                        <button type="button" class="btn btn-primary" onclick="get_tag_manifest()">详情</button>
-                        <button type="button" class="btn btn-primary" onclick="get_tag_history()">历史</button>
+                        <button type="button" class="btn btn-default" id="btn_select_all" onclick="select_all()" disabled>全选</button>
+                        <button type="button" class="btn btn-danger" id="btn_del_images" onclick="del_images()" disabled>删除</button>
+                        <button type="button" class="btn btn-primary" id="btn_tag_manifest" onclick="get_tag_manifest()" disabled>详情</button>
+                        <button type="button" class="btn btn-primary" id="btn_tag_history" onclick="get_tag_history()" disabled>历史</button>
                     </div>
 
                     <div class="col-md-3" style="margin-bottom: 13px">
                         <div class="input-icon-group">
                             <div class="input-group">
-                                <input type="text" class="form-control" id="ipt_search_images" placeholder="搜索标签 ..." autofocus/>
+                                <input type="text" class="form-control" id="ipt_search_tags" placeholder="搜索标签 ..." autofocus disabled/>
                                 <span class="input-group-addon">
                                     <i class="glyphicon glyphicon-search"> </i>
                                 </span> 
@@ -166,12 +166,17 @@
                             levels: 1,
                             showTags: true
                         });
+                        $('#btn_select_all').attr('disabled',false)
+                        $('#btn_del_images').attr('disabled',false)
+                        $('#btn_tag_manifest').attr('disabled',false)
+                        $('#btn_tag_history').attr('disabled',false)
+                        $('#ipt_search_tags').attr('disabled',false)
                     } else {
                         $('#tag_list').treeview({data: [{"text":"镜像木有标签 ..."}]})
                         $('#tag_list').treeview('disableAll', { silent: true });
                         $('#btn_collapse_all').attr('disabled',true)
                         $('#btn_delete_images').attr('disabled',true)
-                        $('#ipt_search_images').attr('disabled',true)
+                        $('#ipt_search_tags').attr('disabled',true)
                     }
                 }
             });
@@ -284,10 +289,10 @@
                 exactmatch: false,
                 revealresults: true
             }
-            var pattern = $('#ipt_search_images').val();
+            var pattern = $('#ipt_search_tags').val();
             var results = $('#tag_list').treeview('search', [ pattern, options ]);
         }
-        $('#ipt_search_images').on('keyup', search);
+        $('#ipt_search_tags').on('keyup', search);
 
         function del_images() {
             var sel_tags = $('#tag_list').treeview('getSelected', { silent: true });
