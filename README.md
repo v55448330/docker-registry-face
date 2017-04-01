@@ -2,7 +2,7 @@
 
 之前画的 [Lazy_balancer](https://github.com/v55448330/lazy-balancer) (Nginx WebUI) 推出之后广受好评。最近项目使用 Docker，一段时间内，因为持续集成的原因，每天会产生很多镜像，目前只能选择 Registry 、Nexus Repo 之类的产品，但是要么太重，要么太丑。想要点点鼠标就优雅的解决这个问题还是得靠自己，项目又诞生了。因为上一个项目使用了 Django，这里尝试使用 Flask。
 
-非专业开发，代码凑合看。
+因为官方的 Registry 木有脸，所以这里就叫脸了 ... 非专业开发，代码凑合看。
 
 > * 项目基于 [Flask](http://flask.pocoo.org/) + [Bootstrap](http://getbootstrap.com/) + [jQuery](http://jquery.com/) 构建，在 Python 2.7 上测试通过；为了保证良好的兼容性，请使用 Chrome 浏览器。
 > * 为了轻量化，没有使用数据库等，配置将使用环境变量或者文件的方式保存；需要本地测试的同学请使用 Vagrant 或者 Docker 运行
