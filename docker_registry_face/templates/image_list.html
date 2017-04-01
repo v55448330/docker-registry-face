@@ -109,13 +109,20 @@
                                     "selectable": false
                                 })
                             })
-                        } else {
+                            img["selectable"] = false
+                            tree_view.push(img)
+                        }
+                    })
+                    $.each(data, function(index, fvalue, array) {
+                        var img = {}
+                        if (!fvalue['sub']) {
                             img['text'] = fvalue.name
                             img["href"] = "tags?image=" + fvalue.name
+                            img["selectable"] = false
+                            tree_view.push(img)
                         }
-                        img["selectable"] = false
-                        tree_view.push(img)
                     })
+ 
                     if (tree_view.length) {
                         $('#image_list').treeview({
                             data: tree_view,
