@@ -40,6 +40,14 @@ python runserver.py
 http://[IP]:3000/  
 ```
 > 若使用容器运行，请配置 `REGISTRY_URL`、`REGISTRY_USER`、`REGISTRY_PASS`，环境变量，此时配置将通过环境变量获取，并 **不可** 在页面修改！
+>
+> ```
+> docker run -d --restart=always -p 3000:3000 \
+>     -e REGISTRY_URL=http://<registry_host>:<registry_port> \
+>     -e REGISTRY_USER=<registry_admin_user> \
+>     -e REGISTRY_PASSWORD=<registry_admin_password> \
+>     v55448330/docker-registry-face:latest
+> ```
 
 ## 演示
 ![image](readme_img/1.png)
