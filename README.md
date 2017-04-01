@@ -11,6 +11,7 @@
 
 ## 项目地址
 - GITHUB - https://github.com/v55448330/docker-registry-face
+- OSCHINA - http://git.oschina.net/v55448330/docker-registry-face
 
 ## 功能
 * 支持镜像查询
