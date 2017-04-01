@@ -87,11 +87,13 @@ def get_image_tags():
                     print tr.headers
                     t_info = json.loads(tr.text)
                     if not t_info.has_key('errors'):
+                        last_modified = time.strftime("%Y-%m-%d %H:%M:%S",time.strptime(tr.headers.get('Last-Modified',''), '%a, %d %b %Y %H:%M:%S GMT'))
                         img["layer_count"] = len(t_info.get('layers'))
                         img["layer_detail"] = t_info.get('layers')
                         img["url"] = registry_url + "/" + image + ":" + t
                         img["tag"] = t
                         img["digest"] = tr.headers.get('Docker-Content-Digest','')
+                        img["last_modified"] = last_modified
                         tags['tag_list'].append(img)
         # print json.dumps(tags)
     except Exception,e:
