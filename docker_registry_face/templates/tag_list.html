@@ -325,10 +325,12 @@
                             else {
                                 $('#sp_tmp_' + index).text("失败")
                             }
+                            if ((index + 1) == sel_tags.length) {
+                                $('#sp_info_body').append('<br /><span><strong>删除完成！</strong></span>')
+                            }
                         });
                     })
                 })
-                $('#sp_info_body').append('<br /><span><strong>删除完成！</strong></span>')
             } else {
                 $('#sp_info_title').text('错误')
                 $('#sp_info_body').append('<span>您似乎木有选择 <strong>要删除</strong> 的标签</span>')
