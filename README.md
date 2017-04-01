@@ -26,7 +26,7 @@ mkdir -p /app && cd /app
 git clone https://github.com/v55448330/docker-registry-face.git
 cd /app/docker_registry_face
 ```
-* 安装依赖
+* 安装运行环境
 ```
 pip install -r pip-freeze.txt 
 ```
@@ -34,7 +34,7 @@ pip install -r pip-freeze.txt
 ```
 python runserver.py
 ```
-* 登录系统
+* 访问
 ```
 http://[IP]:3000/  
 ```
