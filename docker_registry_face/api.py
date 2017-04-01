@@ -84,12 +84,14 @@ def get_image_tags():
                         timeout=5,
                         headers={'Accept':'application/vnd.docker.distribution.manifest.v2+json'}
                     )
+                    print tr.headers
                     t_info = json.loads(tr.text)
                     if not t_info.has_key('errors'):
                         img["layer_count"] = len(t_info.get('layers'))
                         img["layer_detail"] = t_info.get('layers')
                         img["url"] = registry_url + "/" + image + ":" + t
                         img["tag"] = t
+                        img["digest"] = tr.headers.get('Docker-Content-Digest','')
                         tags['tag_list'].append(img)
         # print json.dumps(tags)
     except Exception,e:

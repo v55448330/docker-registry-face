@@ -55,8 +55,9 @@
                 <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
                 <h4 class="modal-title">标签清单</h4>
-                <small><span id="sp_tag_url"></span></small>
-                <strong><span id="sp_tag_size"></span></strong>
+                <strong><span id="sp_tag_size"></span></strong><br />
+                <small><span id="sp_tag_url"></span></small><br />
+                <small><span id="sp_tag_digest"></span></small><br />
                 </div>
                 <div class="modal-body" style="margin-bottom: 15px">
                     <ul class="list-group" id="ul_tag_detail_body">
@@ -185,6 +186,7 @@
             $('#ul_tag_detail_body').empty()
             $('#sp_tag_url').empty()
             $('#sp_tag_size').empty()
+            $('#sp_tag_digest').empty()
         })
 
         $('#mdl_show_history').on('hide.bs.modal', function (e) {
@@ -194,6 +196,7 @@
         $('#mdl_info').on('hide.bs.modal', function (e) {
             $('#sp_info_title').empty()
             $('#sp_info_body').empty()
+            top.location = 'tags?image=' + image
         })
 
         function get_tag_manifest() {
@@ -206,11 +209,11 @@
                     tag_size += value.size
                     $('#ul_tag_detail_body').append("<li class=\"list-group-item\" style=\"word-wrap:break-word\"> \
                         <span class=\"badge\">" + (value.size / 1024 / 1024).toFixed(2) + " MB</span> \
-                        <small><strong>mediaType: </strong>" 
+                        <small><strong>mediaType: </strong>"
                         + value.mediaType + "<br/><strong>digest: </strong>"
                         + value.digest + "</small></li>")
                 })
-
+                $('#sp_tag_digest').text(tag_detail.digest.split(':')[1])
                 $('#sp_tag_url').text(tag_detail.url)
                 $('#sp_tag_size').text((tag_size / 1024 / 1024).toFixed(2) + " MB")
                 $('#mdl_show_detail').modal('show')
