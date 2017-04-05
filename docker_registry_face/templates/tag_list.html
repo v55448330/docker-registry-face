@@ -27,8 +27,9 @@
                 <div class="modal-header">
                     <h4 class="modal-title"><span id="sp_info_title"></span></h4>
                 </div>
-            <div class="modal-body" id="sp_info_body" style="margin-bottom: 10px">
-            </div>
+                <div class="modal-body" id="sp_info_body"></div>
+                <div class="modal-footer" id="sp_info_foot">
+                </div>
             </div>
         </div>
     </div>
@@ -97,7 +98,7 @@
                 <div class="row">
                     <div class="col-md-9" style="margin-bottom: 13px">
                         <button type="button" class="btn btn-default" id="btn_select_all" onclick="select_all()" disabled>全选</button>
-                        <button type="button" class="btn btn-danger" id="btn_del_images" onclick="del_images()" disabled>删除</button>
+                        <button type="button" class="btn btn-danger" id="btn_del_images" onclick="del_images(0)" disabled>删除</button>
                         <button type="button" class="btn btn-primary" id="btn_tag_manifest" onclick="get_tag_manifest()" disabled>详情</button>
                         <button type="button" class="btn btn-primary" id="btn_tag_history" onclick="get_tag_history()" disabled>历史</button>
                     </div>
@@ -201,6 +202,7 @@
         $('#mdl_info').on('hide.bs.modal', function (e) {
             $('#sp_info_title').empty()
             $('#sp_info_body').empty()
+            $('#sp_info_foot').empty()
             top.location = 'tags?image=' + image
         })
 
@@ -225,6 +227,7 @@
             } else {
                 $('#sp_info_title').text('错误')
                 $('#sp_info_body').append('<span>没有选择标签或者选择了 <strong>多个标签</strong></span>')
+                $('#sp_info_foot').append('<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>')
                 $('#mdl_info').modal('show')
             }
         }
@@ -265,6 +268,7 @@
             } else {
                 $('#sp_info_title').text('错误')
                 $('#sp_info_body').append('<span>没有选择标签或者选择了 <strong>多个标签</strong></span>')
+                $('#sp_info_foot').append('<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>')
                 $('#mdl_info').modal('show')
             }
         }
@@ -294,43 +298,52 @@
         }
         $('#ipt_search_tags').on('keyup', search);
 
-        function del_images() {
+        function del_images(verify) {
             var sel_tags = $('#tag_list').treeview('getSelected', { silent: true });
             if (sel_tags.length) {
-                $('#sp_info_title').text('删除镜像')
-                $('#mdl_info').modal('show')
-                $.each(sel_tags, function(index, value, array) {
-                    //$('#sp_info_body').empty()
-
-                    $('#sp_info_body').append('<small><span>正在删除镜像 <strong>'
-                        + image + ':' + value.text + '</strong> 。第 ' + (index + 1) + ' 个，共 '
-                        + sel_tags.length + ' 个。</span><span id=\'sp_tmp_' + index + '\'></span></small><br />'
-                    )
-                    var body = {
-                        "image":image,
-                        "tag":value.text
-                    }
-                    fetch('/api/v1/tag', {
-                        body: JSON.stringify(body),
-                        method: 'delete',
-                        headers: {"Content-type": "application/json charset=UTF-8"}
+                if (verify) {
+                    $('#sp_info_title').text('删除镜像')
+                    $('#sp_info_body').empty()
+                    $('#sp_info_foot').empty()
+                    $('#sp_info_foot').append('<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>')
+                    //$('#mdl_info').modal('show')
+                    $.each(sel_tags, function(index, value, array) {
+                        $('#sp_info_body').append('<small><span>正在删除镜像 <strong>'
+                            + image + ':' + value.text + '</strong> 。第 ' + (index + 1) + ' 个，共 '
+                            + sel_tags.length + ' 个。</span><span id=\'sp_tmp_' + index + '\'></span></small><br />'
+                        )
+                        var body = {
+                            "image":image,
+                            "tag":value.text
+                        }
+                        fetch('/api/v1/tag', {
+                            body: JSON.stringify(body),
+                            method: 'delete',
+                            headers: {"Content-type": "application/json charset=UTF-8"}
+                        })
+                        .then(
+                            function(response) {
+                                response.json().then(function(data) {
+                                console.log(response)
+                                if (response.status == 200) {
+                                    $('#sp_tmp_' + index).text("成功")
+                                }
+                                else {
+                                    $('#sp_tmp_' + index).text("失败")
+                                }
+                                if ((index + 1) == sel_tags.length) {
+                                    $('#sp_info_body').append('<br /><span><strong>删除完成！</strong></span>')
+                                }
+                            });
+                        })
                     })
-                    .then(
-                        function(response) {
-                            response.json().then(function(data) {
-                            console.log(response)
-                            if (response.status == 200) {
-                                $('#sp_tmp_' + index).text("成功")
-                            }
-                            else {
-                                $('#sp_tmp_' + index).text("失败")
-                            }
-                            if ((index + 1) == sel_tags.length) {
-                                $('#sp_info_body').append('<br /><span><strong>删除完成！</strong></span>')
-                            }
-                        });
-                    })
-                })
+                } else {
+                    $('#sp_info_title').text('删除镜像')
+                    $('#sp_info_body').append('<span>请确认您 <strong>删除镜像</strong> 的操作</span>')
+                    $('#sp_info_foot').append('<button type="button" class="btn btn-default" data-dismiss="modal">关闭</button> \
+                    <button type="button" class="btn btn-danger" onclick="del_images(1)">确认</button>')
+                    $('#mdl_info').modal('show')
+                }
             } else {
                 $('#sp_info_title').text('错误')
                 $('#sp_info_body').append('<span>您似乎木有选择 <strong>要删除</strong> 的标签</span>')
