@@ -73,9 +73,6 @@ def get_image_tags():
         registry_password = config.get('registry_password')
         verify_ssl = config.get('verify_ssl')
 
-        print verify_ssl
-        print type(verify_ssl)
-
         if registry_url \
             and registry_user \
             and registry_password:
@@ -87,7 +84,8 @@ def get_image_tags():
                     tr = requests.get(url=registry_url + "/v2/" + image + "/manifests/" + t, 
                         auth=HTTPBasicAuth(registry_user,registry_password), 
                         timeout=5,
-                        headers={'Accept':'application/vnd.docker.distribution.manifest.v2+json'}
+                        headers={'Accept':'application/vnd.docker.distribution.manifest.v2+json'},
+                        verify=verify_ssl
                     )
                     print tr.headers
                     t_info = json.loads(tr.text)
