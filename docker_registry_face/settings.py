@@ -10,6 +10,7 @@ def settings_index():
         'registry_url':'',
         'registry_user':'',
         'registry_password':'',
+        'verify_ssl':True,
         'is_env':0
     }
 
@@ -17,6 +18,7 @@ def settings_index():
         content['registry_url'] = app.config['REGISTRY_URL']
         content['registry_user'] = app.config['REGISTRY_USER']
         content['registry_password'] = app.config['REGISTRY_PASSWORD']
+        content['verify_ssl'] = app.config['VERIFY_SSL']
         content['is_env'] = 1
     else:
         registry_local_conf = {}
@@ -26,6 +28,7 @@ def settings_index():
         content['registry_url'] = registry_local_conf.get('REGISTRY_URL','')
         content['registry_user'] = registry_local_conf.get('REGISTRY_USER','')
         content['registry_password'] = registry_local_conf.get('REGISTRY_PASSWORD','')
+        content['verify_ssl'] = registry_local_conf.get('VERIFY_SSL',True)
 
     return render_template('settings.html', content=content)
 
@@ -37,7 +40,7 @@ def settings_save():
         if req.get('registry_url','') \
             and req.get('registry_user','') \
             and req.get('registry_password',''):
-            r = requests.get(url=req['registry_url'] + "/v2/", auth=HTTPBasicAuth(req['registry_user'],req['registry_password']) ,timeout=2)
+            r = requests.get(url=req['registry_url'] + "/v2/", auth=HTTPBasicAuth(req['registry_user'],req['registry_password']) ,timeout=2,verify=False)
             print r.status_code
             if r.status_code == 200:
                 if app.config.get('IS_ENV'):
@@ -48,12 +51,15 @@ def settings_save():
                         "REGISTRY_URL": req['registry_url'],
                         "REGISTRY_USER": req['registry_user'],
                         "REGISTRY_PASSWORD": req['registry_password'],
+                        "VERIFY_SSL": req.get('verify_ssl','')
                     }
+                    print registry_conf
 
                     app.config.update(
                         REGISTRY_URL=req['registry_url'],
                         REGISTRY_USER=req['registry_user'],
-                        REGISTRY_PASSWORD=req['registry_password']
+                        REGISTRY_PASSWORD=req['registry_password'],
+                        VERIFY_SSL=req['verify_ssl']
                     )
                     print app.config.get('REGISTRY_URL')
                     

@@ -14,12 +14,13 @@ def get_images():
         registry_url = config.get('registry_url')
         registry_user = config.get('registry_user')
         registry_password = config.get('registry_password')
+        verify_ssl = config.get('verify_ssl')
 
         if registry_url \
             and registry_user \
             and registry_password:
             image_list = []
-            r = requests.get(url=registry_url + "/v2/_catalog", auth=HTTPBasicAuth(registry_user,registry_password) ,timeout=10)
+            r = requests.get(url=registry_url + "/v2/_catalog", auth=HTTPBasicAuth(registry_user,registry_password), timeout=10, verify=verify_ssl)
             image_result = json.loads(r.text).get('repositories',[])
             for i in image_result:
                 img_data = {}
@@ -70,11 +71,12 @@ def get_image_tags():
         registry_url = config.get('registry_url')
         registry_user = config.get('registry_user')
         registry_password = config.get('registry_password')
+        verify_ssl = config.get('verify_ssl')
 
         if registry_url \
             and registry_user \
             and registry_password:
-            r = requests.get(url=registry_url + "/v2/" + image + "/tags/list", auth=HTTPBasicAuth(registry_user,registry_password) ,timeout=5)
+            r = requests.get(url=registry_url + "/v2/" + image + "/tags/list", auth=HTTPBasicAuth(registry_user,registry_password) ,timeout=5, verify=verify_ssl)
             if r.status_code == 200:
                 t_list = json.loads(r.text).get('tags',[])
                 for t in t_list:
@@ -114,6 +116,7 @@ def get_tag_history():
         registry_url = config.get('registry_url')
         registry_user = config.get('registry_user')
         registry_password = config.get('registry_password')
+        verify_ssl = config.get('verify_ssl')
 
         img = {}
         if registry_url \
@@ -123,7 +126,8 @@ def get_tag_history():
             and tag:
             r = requests.get(url=registry_url + "/v2/" + image + "/manifests/" + tag, 
                 auth=HTTPBasicAuth(registry_user,registry_password), 
-                timeout=5
+                timeout=5,
+                verify=verify_ssl
             )
             if r.status_code == 200:
                 t_info = json.loads(r.text)
@@ -142,6 +146,8 @@ def del_image_tag():
     registry_url = config.get('registry_url')
     registry_user = config.get('registry_user')
     registry_password = config.get('registry_password')
+    verify_ssl = config.get('verify_ssl')
+
     result = {"result":""}
     status = 400
     try:
@@ -153,7 +159,8 @@ def del_image_tag():
             r = requests.get(url=registry_url + "/v2/" + image + "/manifests/" + tag, 
                 auth=HTTPBasicAuth(registry_user,registry_password), 
                 headers={'Accept':'application/vnd.docker.distribution.manifest.v2+json'},
-                timeout=5
+                timeout=5,
+                verify=verify_ssl
             )
             digest = r.headers.get('Docker-Content-Digest','')
             print digest
@@ -176,11 +183,13 @@ def del_manifests(image,digest):
     registry_url = config.get('registry_url')
     registry_user = config.get('registry_user')
     registry_password = config.get('registry_password')
+    verify_ssl = config.get('verify_ssl')
 
     del_url = registry_url + "/v2/" + image + "/manifests/" + digest
     r = requests.delete(url=del_url, 
         auth=HTTPBasicAuth(registry_user,registry_password), 
-        timeout=5
+        timeout=5,
+        verify=verify_ssl
     )
     return r.status_code
 
@@ -190,10 +199,12 @@ def get_manifests(image,tag):
     registry_url = config.get('registry_url')
     registry_user = config.get('registry_user')
     registry_password = config.get('registry_password')
+    verify_ssl = config.get('verify_ssl')
 
     r = requests.get(url=registry_url + "/v2/" + image + "/manifests/" + tag, 
         auth=HTTPBasicAuth(registry_user,registry_password), 
-        timeout=5
+        timeout=5,
+        verify=verify_ssl
     )
     if not json.loads(r.text).has_key('errors'):
         result = False

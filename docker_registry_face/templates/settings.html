@@ -25,8 +25,8 @@
         <div class="modal-dialog modal-md" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
-                <h4 class="modal-title" id="mdl_info_title"></h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">×</span></button>
+                    <h4 class="modal-title" id="mdl_info_title"></h4>
                 </div>
                 <div class="modal-body" style="margin-bottom: 15px">
                     <span id="mdl_info_body"></span>
@@ -81,6 +81,10 @@
                                 <input type="text" class="form-control" placeholder="请填写镜像仓库的管理员密码" id="registry_password">
                             </div>
                         </div>
+                        <div class="form-group">
+                            <input type="checkbox" id="verify_ssl">
+                            <span>验证证书</span>
+                        </div>
                         <button type="button" id="registry_save" onclick="save_registry()" class="btn btn-primary">保存</button>
                     </form>
                 </div>
@@ -106,12 +110,19 @@
         $('#registry_url').val('{{ content.registry_url }}')
         $('#registry_user').val('{{ content.registry_user }}')
         $('#registry_password').val('{{ content.registry_password }}')
+        {% if content.verify_ssl %}
+            $('#verify_ssl').prop('checked',true)
+        {% else %}
+            $('#verify_ssl').prop('checked',false)
+        {% endif %}
+        
 
         {% if content.is_env == 1 %}
-        $('#registry_url').attr("disabled",true)
-        $('#registry_user').attr("disabled",true)
-        $('#registry_password').attr("disabled",true)
-        $('#registry_save').attr("disabled",true)
+        $('#registry_url').attr("disabled", true)
+        $('#registry_user').attr("disabled", true)
+        $('#registry_password').attr("disabled", true)
+        $('#verify_ssl').attr("disabled", true)
+        $('#registry_save').attr("disabled", true)
         {% endif %}
 
         function save_registry() {
@@ -119,7 +130,8 @@
                 var pbody = {
                     "registry_url": $('#registry_url').val(),
                     "registry_user": $('#registry_user').val(),
-                    "registry_password": $('#registry_password').val()
+                    "registry_password": $('#registry_password').val(),
+                    "verify_ssl": $('#verify_ssl').prop('checked')
                 }
                 fetch('/settings', {
                         method: 'post',
@@ -135,28 +147,28 @@
                                     console.log(response)
                                     $('#mdl_info_title').text("提示");
                                     $('#mdl_info_body').text("保存失败！" + response.status + ": " + data.result);
-                                    $("#mdl_alert").modal('show'); 
+                                    $("#mdl_alert").modal('show');
                                     return;
                                 }
                                 console.log(data);
                                 $('#mdl_info_title').text("提示");
                                 $('#mdl_info_body').text("保存成功！");
-                                $('#mdl_alert').on('hide.bs.modal', function () {
+                                $('#mdl_alert').on('hide.bs.modal', function() {
                                     top.location = '/settings'
                                 })
-                                $("#mdl_alert").modal('show'); 
+                                $("#mdl_alert").modal('show');
                             });
                         }
                     )
                     .catch(function(err) {
                         $('#mdl_info_title').text("提示");
                         $('#mdl_info_body').text("请求异常！" + err);
-                        $("#mdl_alert").modal('show'); 
+                        $("#mdl_alert").modal('show');
                     });
             } else {
                 $('#mdl_info_title').text("提示");
                 $('#mdl_info_body').text("请正确填写配置项！");
-                $("#mdl_alert").modal('show'); 
+                $("#mdl_alert").modal('show');
             }
         }
     </script>
