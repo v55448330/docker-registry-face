@@ -59,7 +59,7 @@ def settings_save():
                         REGISTRY_URL=req['registry_url'],
                         REGISTRY_USER=req['registry_user'],
                         REGISTRY_PASSWORD=req['registry_password'],
-                        VERIFY_SSL=req['verify_ssl']
+                        VERIFY_SSL=req.get('verify_ssl','')
                     )
                     print app.config.get('REGISTRY_URL')
                     

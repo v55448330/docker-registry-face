@@ -131,7 +131,10 @@
                     "registry_url": $('#registry_url').val(),
                     "registry_user": $('#registry_user').val(),
                     "registry_password": $('#registry_password').val(),
-                    "verify_ssl": $('#verify_ssl').prop('checked')
+                    "verify_ssl": ""
+                }
+                if ($('#verify_ssl').prop('checked')) {
+                    pbody.verify_ssl = "1"
                 }
                 fetch('/settings', {
                         method: 'post',

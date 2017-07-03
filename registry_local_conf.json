@@ -1,1 +1,1 @@
-{"REGISTRY_PASSWORD": "docker", "REGISTRY_USER": "docker", "VERIFY_SSL": true, "REGISTRY_URL": "http://1.1.1.1:5000"}
+{"REGISTRY_PASSWORD": "docker", "REGISTRY_USER": "docker", "VERIFY_SSL": "", "REGISTRY_URL": "http://1.1.1.1:5000"}
