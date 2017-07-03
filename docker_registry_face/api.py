@@ -73,6 +73,9 @@ def get_image_tags():
         registry_password = config.get('registry_password')
         verify_ssl = config.get('verify_ssl')
 
+        print verify_ssl
+        print type(verify_ssl)
+
         if registry_url \
             and registry_user \
             and registry_password:
