@@ -5,12 +5,8 @@ pipeline {
       steps {
         parallel(
           "testa": {
-            sh 'echo "test"'
-
-          },
-          "testb": {
-            sleep 10
-
+            checkout scm
+            echo "current branch: $BRANCH_NAME"
           }
         )
       }
