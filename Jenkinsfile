@@ -5,8 +5,24 @@ pipeline {
       steps {
         parallel(
           "testa": {
-            checkout scm
-            echo "current branch: $BRANCH_NAME"
+            dir ('master') {
+              checkout([
+                $class: 'GitSCM', branches: [[name: '*/master']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [],
+                submoduleCfg: [],
+                userRemoteConfigs: [[url: 'https://github.com/v55448330/docker-registry-face.git']]])
+            }
+
+            dir ('test') {
+              checkout([
+                $class: 'GitSCM', branches: [[name: '*/test']],
+                doGenerateSubmoduleConfigurations: false,
+                extensions: [],
+                submoduleCfg: [],
+                userRemoteConfigs: [[url: 'https://github.com/v55448330/docker-registry-face.git']]])
+            }
+
           }
         )
       }
